@@ -2,6 +2,7 @@ import { extractFeatures } from "./features";
 import { computeScores, oneHot, softmax } from "./model";
 import { DataEntry, ModelParams, TrainOptions } from "./params";
 import { initBias, initWeights, loadDataset, saveModelParams } from "./utils/utils";
+import path from "path";
 
 function train(dataset: DataEntry[], modelParams: ModelParams, options: TrainOptions): ModelParams {
     const { epochs, learningRate } = options;
@@ -32,10 +33,15 @@ function train(dataset: DataEntry[], modelParams: ModelParams, options: TrainOpt
     return modelParams;
 }
 
+function getDatasetPath(): string {
+    return path.resolve("training_data/emails.csv");
+}
+
 let weights = initWeights();
 let bias = initBias();
 const modelParams: ModelParams = { weights, bias };
 const trainOptions: TrainOptions = { epochs: 50, learningRate: 0.01 };
-const dataset = loadDataset();
+
+const dataset = loadDataset(getDatasetPath());
 const trainedParams = train(dataset, modelParams, trainOptions);
 saveModelParams(trainedParams);

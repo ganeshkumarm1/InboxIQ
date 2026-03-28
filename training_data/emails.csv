@@ -1,61 +1,62 @@
 text,label
-Submit report by today EOD,2
-Urgent: Production issue needs fix ASAP,2
-Client escalation - need response immediately,2
-Deadline tomorrow for project submission,2
-Manager: Please review the document now,2
-Final reminder: Tax filing deadline today,2
-Action required: Security issue detected,2
-Team lead: join meeting immediately,2
-Critical bug found in production,2
-Your interview is scheduled for tomorrow,2
-Immediate action required on server downtime,2
-Payment failed - resolve immediately,2
-Escalation from client regarding delay,2
-High priority: Fix login issue,2
-Board meeting moved to today evening,2
-Security alert: Suspicious login attempt,2
-Production alert: API failure detected,2
-Urgent approval needed for release,2
-Client waiting for your response,2
-Final warning: Account will be blocked today,2
-Team meeting at 5pm today,1
-Please review and share feedback,1
-Invoice for last month attached,1
-Reminder: Submit timesheet,1
-Schedule a call when free,1
-Update your profile details,1
-Can you check this once?,1
-Follow up on previous discussion,1
-Your package has been shipped,1
-OTP for login is 123456,1
-Meeting rescheduled to tomorrow,1
-Please confirm your availability,1
-Document shared for your review,1
-Kindly approve the request,1
-Reminder: Pay electricity bill,1
-Update required on project status,1
-Feedback needed on design draft,1
-Check and revert back,1
-Call scheduled with client,1
-Your subscription is expiring soon,1
-50% discount on shoes!!!,0
-Big sale ends tonight!!!,0
-Limited time offer on credit cards,0
-Newsletter: Top 10 travel destinations,0
-Daily news update,0
-Special promotion just for you,0
-Earn money from home easily,0
-Flash sale on electronics,0
-Check out new arrivals,0
-Unbelievable deals waiting for you,0
-Exclusive offer just for you,0
-Flat 70% off on fashion,0
-You won a lucky draw!!!,0
-Claim your free voucher now,0
-Best deals on smartphones today,0
-Travel offers you can't miss,0
-Upgrade your lifestyle today,0
-Mega sale on appliances,0
-Trending products just dropped,0
-Hot deals available now,0
+Subject: Urgent - Production issue\nThe API is failing in production. Please check immediately.,2
+Subject: Deadline Today\nReminder that the financial report must be submitted by EOD today.,2
+Subject: Client Escalation\nClient is unhappy with delays. Need immediate response.,2
+Subject: Security Alert\nSuspicious login detected in your account. Verify immediately.,2
+Subject: Interview Scheduled\nYour interview is scheduled for tomorrow at 10 AM.,2
+Subject: Payment Due\nYour credit card payment is due today. Avoid penalties.,2
+Subject: Immediate Action Required\nServer downtime detected. Please investigate now.,2
+Subject: Manager Request\nPlease review the document and send feedback today.,2
+Subject: Final Reminder\nLast day to submit tax documents.,2
+Subject: Critical Bug\nLogin system is broken in production. Fix ASAP.,2
+Subject: Compliance Notice\nSubmit mandatory compliance forms before deadline.,2
+Subject: Meeting Today\nImportant meeting rescheduled to today evening.,2
+Subject: Account Warning\nYour account will be suspended today if not verified.,2
+Subject: Project Deadline\nFinal submission deadline is tomorrow.,2
+Subject: Action Required\nPlease approve the release immediately.,2
+Subject: Team Meeting\nWe have a team sync at 4 PM today.,1
+Subject: Review Needed\nCan you review the attached file and share feedback?,1
+Subject: Invoice Attached\nPlease find the invoice for last month.,1
+Subject: Reminder\nSubmit your timesheet for this week.,1
+Subject: Follow Up\nJust following up on the previous discussion.,1
+Subject: Delivery Update\nYour order has been delivered successfully.,1
+Subject: OTP\nYour OTP for login is 839201.,1
+Subject: Schedule Call\nLet’s schedule a call sometime this week.,1
+Subject: Update Required\nPlease update your profile information.,1
+Subject: Feedback Request\nKindly share feedback on the proposal.,1
+Subject: Approval Needed\nPlease approve the budget request.,1
+Subject: Meeting Invite\nYou are invited to a meeting tomorrow.,1
+Subject: Reminder\nDon’t forget to pay your electricity bill.,1
+Subject: Document Shared\nA file has been shared with you.,1
+Subject: Subscription Notice\nYour subscription will renew soon.,1
+Subject: Big Sale\nFlat 50% off on all products. Shop now!,0
+Subject: Exclusive Offer\nLimited time offer just for you.,0
+Subject: Newsletter\nTop 10 travel destinations for 2026.,0
+Subject: Daily News\nHere are today’s top headlines.,0
+Subject: Promotion\nEarn money from home easily.,0
+Subject: Flash Sale\nHuge discounts on electronics.,0
+Subject: Deals\nBest deals on fashion this week.,0
+Subject: Cashback Offer\nGet 20% cashback on purchases.,0
+Subject: Marketing Update\nCheck out our latest products.,0
+Subject: Shopping Alert\nTrending items now available.,0
+Subject: Discount\nBuy 1 get 1 free on all items.,0
+Subject: Lifestyle\nUpgrade your lifestyle today.,0
+Subject: Travel Deals\nSpecial offers on flights.,0
+Subject: Advertisement\nNew arrivals in store now.,0
+Subject: Promo\nLimited period discounts available.,0
+"Urgent offer just for you!!!",0
+"Reminder: meeting tomorrow",1
+"Discount expires today",0
+"Submit report when free",1
+"Important update about your account",2
+"Free webinar on productivity",0
+"Your package will arrive tomorrow",1
+"Immediate action required for discount claim",0
+"Urgent offer just for you!!!",0
+"Reminder: meeting tomorrow",1
+"Discount expires today",0
+"Submit report when free",1
+"Important update about your account",2
+"Free webinar on productivity",0
+"Your package will arrive tomorrow",1
+"Immediate action required for discount claim",0

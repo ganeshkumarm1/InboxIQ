@@ -5,6 +5,7 @@
   "scripts": {
     "train": "ts-node model/train.ts",
     "infer": "ts-node model/infer-cli.ts",
+    "benchmark": "ts-node benchmark/benchmark.ts",
     "build": "tsc",
     "lint": "eslint \"model/**/*.ts\"",
     "lint:fix": "eslint \"model/**/*.ts\" --fix",

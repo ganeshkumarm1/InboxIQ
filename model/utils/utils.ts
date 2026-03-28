@@ -6,8 +6,7 @@ import path from "path";
 
 const MODEL_PARAMS_OUTPUT_FILE = path.join(__dirname, "..", "output", "params.json");
 
-export function loadDataset(): DataEntry[] {
-    const datasetPath = path.join(__dirname, "..", "..", "training_data", "emails.csv");
+export function loadDataset(datasetPath: string): DataEntry[] {
     const dataset: DataEntry[] = [];
     const content = fs.readFileSync(datasetPath, "utf-8");
     const rows = parse(content, { columns: true });
