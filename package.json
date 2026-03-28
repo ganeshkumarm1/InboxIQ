@@ -3,16 +3,25 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node model.ts",
+    "train": "ts-node model/train.ts",
+    "infer": "ts-node model/infer-cli.ts",
     "build": "tsc",
-    "run:dist": "node dist/model.js"
+    "lint": "eslint \"model/**/*.ts\"",
+    "lint:fix": "eslint \"model/**/*.ts\" --fix",
+    "format": "prettier --write \"model/**/*.ts\"",
+    "format:check": "prettier --check \"model/**/*.ts\""
   },
   "author": "Ganesh Kumar Marimuthu",
   "license": "MIT",
   "description": "A DIY email priority classification system built using bare Neural Network",
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
     "csv-parse": "^6.2.1",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"
   }
