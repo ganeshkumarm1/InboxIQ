@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InboxIQ — Neural Network Visualizer</title>
+<style>
+  :root {
+    --bg:        #0d0d0f;
+    --surface:   #16161a;
+    --border:    #2a2a32;
+    --muted:     #3a3a45;
+    --text:      #e8e8f0;
+    --sub:       #7a7a90;
+    --accent:    #7c6af7;
+    --ignore:    #7a7a90;
+    --action:    #7c6af7;
+    --important: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+  }
+  header { text-align: center; margin-bottom: 48px; }
+  header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+  header h1 span { color: var(--accent); }
+  header p { margin-top: 8px; color: var(--sub); font-size: 0.9rem; }
+
+  .input-row { display: flex; gap: 10px; width: 100%; max-width: 680px; margin-bottom: 48px; }
+  .input-row input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; color: var(--text);
+    font-size: 1rem; outline: none; transition: border-color 0.2s;
+  }
+  .input-row input:focus { border-color: var(--accent); }
+  .input-row input::placeholder { color: var(--sub); }
+  .input-row button {
+    background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    padding: 14px 24px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .input-row button:hover  { opacity: 0.85; }
+  .input-row button:active { transform: scale(0.97); }
+
+  .pipeline { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 20px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 28px;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+  .card-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 1.8px;
+    text-transform: uppercase; color: var(--sub); margin-bottom: 18px;
+  }
+
+  .tokens { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+  .token {
+    background: var(--muted); color: var(--text); border-radius: 6px;
+    padding: 5px 12px; font-size: 0.82rem; font-family: monospace;
+    opacity: 0; transform: translateY(6px) scale(0.9);
+    transition: opacity 0.2s, transform 0.2s, background 0.35s, color 0.35s;
+  }
+  .token.visible      { opacity: 1; transform: translateY(0) scale(1); }
+  .token.hit-urgent   { background: #f87171; color: #fff; }
+  .token.hit-action   { background: #7c6af7; color: #fff; }
+  .token.hit-promo    { background: #fbbf24; color: #000; }
+  .token.hit-deadline { background: #4ade80; color: #000; }
+  .token.hit-date     { background: #38bdf8; color: #000; }
+
+  .features-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .feature-node {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; transform: scale(0.85);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .feature-node.visible { opacity: 1; transform: scale(1); }
+  .feature-circle {
+    width: 54px; height: 54px; border-radius: 50%;
+    border: 2px solid var(--border); display: flex; align-items: center;
+    justify-content: center; font-size: 1.2rem; background: var(--bg);
+    transition: border-color 0.5s, background 0.5s, box-shadow 0.5s;
+  }
+  .feature-circle.active {
+    border-color: var(--accent); background: rgba(124,106,247,0.15);
+    box-shadow: 0 0 20px rgba(124,106,247,0.45);
+  }
+  .feature-val { font-size: 0.72rem; font-weight: 700; font-family: monospace; color: var(--sub); transition: color 0.4s; }
+  .feature-val.active { color: var(--accent); }
+  .feature-name { font-size: 0.65rem; color: var(--sub); text-align: center; line-height: 1.3; }
+
+  #network-canvas { display: block; width: 100%; }
+
+  .output-bars { display: flex; flex-direction: column; gap: 16px; }
+  .output-row { display: flex; align-items: center; gap: 14px; }
+  .output-label { width: 88px; font-size: 0.8rem; font-weight: 600; color: var(--sub); flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; background: var(--muted); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.9s cubic-bezier(0.4,0,0.2,1); }
+  .bar-fill.ignore    { background: var(--ignore); }
+  .bar-fill.action    { background: var(--action); }
+  .bar-fill.important { background: var(--important); }
+  .bar-pct { width: 46px; text-align: right; font-size: 0.78rem; font-family: monospace; color: var(--sub); flex-shrink: 0; }
+
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 22px; padding: 12px 24px; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.5px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .result-badge.visible { opacity: 1; transform: translateY(0); }
+  .result-badge.ignore    { background: rgba(122,122,144,0.12); color: var(--ignore);    border: 1px solid var(--ignore); }
+  .result-badge.action    { background: rgba(124,106,247,0.12); color: var(--action);    border: 1px solid var(--action); }
+  .result-badge.important { background: rgba(248,113,113,0.12); color: var(--important); border: 1px solid var(--important); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  @media (max-width: 600px) {
+    .features-grid { grid-template-columns: repeat(3, 1fr); }
+    header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inbox<span>IQ</span></h1>
+  <p>Neural network email classifier — watch the forward pass live</p>
+</header>
+
+<div class="input-row">
+  <input id="email-input" type="text" placeholder="Type an email subject…" value="Submit report by today" />
+  <button onclick="run()">Classify</button>
+</div>
+
+<div class="pipeline">
+  <div class="card" id="card-tokens">
+    <div class="card-label">01 — Tokenization</div>
+    <div class="tokens" id="tokens-container"></div>
+  </div>
+  <div class="card" id="card-features">
+    <div class="card-label">02 — Feature Extraction</div>
+    <div class="features-grid" id="features-container"></div>
+  </div>
+  <div class="card" id="card-network">
+    <div class="card-label">03 — Neural Network · Forward Pass</div>
+    <canvas id="network-canvas"></canvas>
+  </div>
+  <div class="card" id="card-output">
+    <div class="card-label">04 — Classification</div>
+    <div class="output-bars" id="output-bars"></div>
+    <div id="result-badge-container"></div>
+  </div>
+</div>
+
+<script>
+const WEIGHTS = [
+  [-0.17330338021095099, -0.17765972769770744,  0.05952927583229145, -0.25698948226449875, -0.05242587428084558],
+  [-0.2363070248754792,  -0.20040164927905876,  0.02569183935863198, -0.2824647821219226,  -0.007074814910282348],
+  [ 0.3917663908626068,   0.31449596357261295,  0.007726050041398397, 0.5399047107443682,  -0.05586961927135481]
+];
+const BIAS = [-0.514447131797996, -0.5285617395817533, 0.857646277077065];
+
+const URGENT_W   = ["urgent","critical","important","asap","now","priority"];
+const ACTION_W   = ["submit","review","check","update","confirm","approve","send","complete","verify","respond"];
+const PROMO_W    = ["offer","discount","sale","deal","free","cashback","coupon","voucher","buy","limited","exclusive","save","win","bonus","gift"];
+const DEADLINE_W = { today:2, tomorrow:2, deadline:3, due:2, tonight:2 };
+const MONTHS_RE  = "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*";
+const DATE_PAT   = [
+  /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/,
+  /\b\d{4}-\d{2}-\d{2}\b/,
+  new RegExp("\\b\\d{1,2} " + MONTHS_RE + "\\b"),
+  new RegExp("\\b" + MONTHS_RE + " \\d{1,2}\\b")
+];
+
+const F_META = [
+  { name:"Urgent",   icon:"🚨", hitClass:"hit-urgent",   color:"#f87171" },
+  { name:"Action",   icon:"⚡", hitClass:"hit-action",   color:"#7c6af7" },
+  { name:"Promo",    icon:"🏷️", hitClass:"hit-promo",    color:"#fbbf24" },
+  { name:"Deadline", icon:"⏰", hitClass:"hit-deadline", color:"#4ade80" },
+  { name:"Date",     icon:"📅", hitClass:"hit-date",     color:"#38bdf8" }
+];
+
+const OUT_META = [
+  { name:"Ignore",    cls:"ignore",    color:"#7a7a90" },
+  { name:"Action",    cls:"action",    color:"#7c6af7" },
+  { name:"Important", cls:"important", color:"#f87171" }
+];
+
+function tokenize(t) { return (t.toLowerCase().match(/\b\w+\b/g) || []); }
+
+function classifyTokens(tokens) {
+  return tokens.map(function(t) {
+    if (URGENT_W.includes(t))  return { token:t, hit:"hit-urgent" };
+    if (ACTION_W.includes(t))  return { token:t, hit:"hit-action" };
+    if (PROMO_W.includes(t))   return { token:t, hit:"hit-promo" };
+    if (t in DEADLINE_W)       return { token:t, hit:"hit-deadline" };
+    return { token:t, hit:null };
+  });
+}
+
+function extractFeatures(text) {
+  var tokens = tokenize(text);
+  var lower  = text.toLowerCase();
+  return [
+    tokens.some(function(t){ return URGENT_W.includes(t); }) ? 1 : 0,
+    tokens.some(function(t){ return ACTION_W.includes(t); }) ? 1 : 0,
+    tokens.filter(function(t){ return PROMO_W.includes(t); }).length,
+    tokens.reduce(function(s,t){ return s + (DEADLINE_W[t]||0); }, 0),
+    DATE_PAT.some(function(p){ return p.test(lower); }) ? 1 : 0
+  ];
+}
+
+function softmax(scores) {
+  var e = scores.map(function(s){ return Math.exp(s); });
+  var sum = e.reduce(function(a,b){ return a+b; }, 0);
+  return e.map(function(v){ return v/sum; });
+}
+
+function forward(features) {
+  var scores = WEIGHTS.map(function(row, i) {
+    return row.reduce(function(s,w,j){ return s + w*features[j]; }, 0) + BIAS[i];
+  });
+  return { scores: scores, probs: softmax(scores) };
+}
+
+var delay = function(ms) { return new Promise(function(r){ setTimeout(r, ms); }); };
+var showCard = function(id) { document.getElementById(id).classList.add("visible"); };
+
+// ── Network canvas (horizontal layout) ───────────────────────────────────────
+var NR = 22;
+var NW = 5;
+var NO = 3;
+var nnCanvas, nnCtx, nnW, nnH, nnDpr;
+var inputCenters  = [];
+var outputCenters = [];
+
+function initCanvas() {
+  nnCanvas = document.getElementById("network-canvas");
+  nnDpr    = window.devicePixelRatio || 1;
+  nnW      = nnCanvas.parentElement.clientWidth;
+  nnH      = Math.max(240, NW * 60);
+  nnCanvas.style.width  = nnW + "px";
+  nnCanvas.style.height = nnH + "px";
+  nnCanvas.width  = nnW * nnDpr;
+  nnCanvas.height = nnH * nnDpr;
+  nnCtx = nnCanvas.getContext("2d");
+  nnCtx.scale(nnDpr, nnDpr);
+
+  var leftX  = 100;
+  var rightX = nnW - 100;
+  var inSpacing  = nnH / (NW + 1);
+  var outSpacing = nnH / (NO + 1);
+
+  inputCenters  = [];
+  outputCenters = [];
+  for (var i = 0; i < NW; i++) inputCenters.push({ x: leftX,  y: inSpacing  * (i+1) });
+  for (var o = 0; o < NO; o++) outputCenters.push({ x: rightX, y: outSpacing * (o+1) });
+}
+
+function clearNN() { nnCtx.clearRect(0, 0, nnW, nnH); }
+
+function drawEdgesDim() {
+  for (var o = 0; o < NO; o++) {
+    for (var f = 0; f < NW; f++) {
+      nnCtx.beginPath();
+      nnCtx.moveTo(inputCenters[f].x + NR, inputCenters[f].y);
+      nnCtx.lineTo(outputCenters[o].x - NR, outputCenters[o].y);
+      nnCtx.strokeStyle = "rgba(255,255,255,0.04)";
+      nnCtx.lineWidth   = 1;
+      nnCtx.stroke();
+    }
+  }
+}
+
+function drawEdgeLit(f, o) {
+  var w   = WEIGHTS[o][f];
+  var abs = Math.min(Math.abs(w) / 0.55, 1);
+  var pos = w >= 0;
+  nnCtx.beginPath();
+  nnCtx.moveTo(inputCenters[f].x + NR, inputCenters[f].y);
+  nnCtx.lineTo(outputCenters[o].x - NR, outputCenters[o].y);
+  nnCtx.strokeStyle = pos
+    ? "rgba(124,106,247," + (0.15 + abs * 0.85) + ")"
+    : "rgba(248,113,113," + (0.15 + abs * 0.85) + ")";
+  nnCtx.lineWidth = 0.5 + abs * 3.5;
+  nnCtx.stroke();
+}
+
+function drawNode(cx, cy, label, color, active, winner) {
+  if (winner) {
+    nnCtx.beginPath();
+    nnCtx.arc(cx, cy, NR + 9, 0, Math.PI * 2);
+    nnCtx.strokeStyle = color + "55";
+    nnCtx.lineWidth   = 2;
+    nnCtx.stroke();
+  }
+  nnCtx.beginPath();
+  nnCtx.arc(cx, cy, NR, 0, Math.PI * 2);
+  nnCtx.fillStyle   = active ? color + "28" : "#16161a";
+  nnCtx.strokeStyle = active ? color : "#2a2a32";
+  nnCtx.lineWidth   = active ? 2.5 : 1;
+  nnCtx.fill();
+  nnCtx.stroke();
+  nnCtx.fillStyle    = active ? "#e8e8f0" : "#7a7a90";
+  nnCtx.font         = "bold 11px Inter, sans-serif";
+  nnCtx.textAlign    = "center";
+  nnCtx.textBaseline = "middle";
+  nnCtx.fillText(label, cx, cy);
+}
+
+function drawSideLabels(features, probs) {
+  var winner = probs.indexOf(Math.max.apply(null, probs));
+  for (var i = 0; i < NW; i++) {
+    var active = features[i] > 0;
+    nnCtx.fillStyle    = active ? F_META[i].color : "#3a3a45";
+    nnCtx.font         = "10px Inter, sans-serif";
+    nnCtx.textAlign    = "right";
+    nnCtx.textBaseline = "middle";
+    nnCtx.fillText(F_META[i].name, inputCenters[i].x - NR - 8, inputCenters[i].y);
+  }
+  for (var o = 0; o < NO; o++) {
+    nnCtx.fillStyle    = o === winner ? OUT_META[o].color : "#3a3a45";
+    nnCtx.font         = "10px Inter, sans-serif";
+    nnCtx.textAlign    = "left";
+    nnCtx.textBaseline = "middle";
+    nnCtx.fillText(OUT_META[o].name, outputCenters[o].x + NR + 8, outputCenters[o].y);
+  }
+}
+
+function redrawAll(features, probs, litInputs, litEdges, litOutputs) {
+  clearNN();
+  drawEdgesDim();
+
+  for (var e = 0; e < litEdges.length; e++) {
+    drawEdgeLit(litEdges[e][0], litEdges[e][1]);
+  }
+
+  var winner = probs.indexOf(Math.max.apply(null, probs));
+
+  for (var f = 0; f < NW; f++) {
+    var active = litInputs.indexOf(f) >= 0 && features[f] > 0;
+    drawNode(inputCenters[f].x, inputCenters[f].y, features[f].toFixed(0), F_META[f].color, active, false);
+  }
+
+  for (var o = 0; o < NO; o++) {
+    var outActive = litOutputs.indexOf(o) >= 0;
+    var label = outActive ? (probs[o]*100).toFixed(0)+"%" : "";
+    drawNode(outputCenters[o].x, outputCenters[o].y, label, OUT_META[o].color, outActive, outActive && o === winner);
+  }
+
+  drawSideLabels(features, probs);
+}
+
+async function animateNetwork(features, probs) {
+  initCanvas();
+  clearNN();
+  drawEdgesDim();
+
+  // Phase 1: light up input nodes one by one
+  var litInputs = [];
+  for (var f = 0; f < NW; f++) {
+    litInputs.push(f);
+    redrawAll(features, probs, litInputs, [], []);
+    await delay(180);
+  }
+  await delay(350);
+
+  // Phase 2: fire edges feature by feature
+  var litEdges = [];
+  for (var fi = 0; fi < NW; fi++) {
+    for (var oi = 0; oi < NO; oi++) {
+      litEdges.push([fi, oi]);
+      redrawAll(features, probs, litInputs, litEdges, []);
+      await delay(90);
+    }
+    await delay(140);
+  }
+  await delay(350);
+
+  // Phase 3: activate output nodes one by one
+  var litOutputs = [];
+  for (var out = 0; out < NO; out++) {
+    litOutputs.push(out);
+    redrawAll(features, probs, litInputs, litEdges, litOutputs);
+    await delay(250);
+  }
+}
+
+async function run() {
+  var text = document.getElementById("email-input").value.trim();
+  if (!text) return;
+
+  ["card-tokens","card-features","card-network","card-output"].forEach(function(id) {
+    document.getElementById(id).classList.remove("visible");
+  });
+  document.getElementById("tokens-container").innerHTML       = "";
+  document.getElementById("features-container").innerHTML     = "";
+  document.getElementById("output-bars").innerHTML            = "";
+  document.getElementById("result-badge-container").innerHTML = "";
+
+  await delay(80);
+
+  // 01 Tokenization
+  showCard("card-tokens");
+  var classified = classifyTokens(tokenize(text));
+  var tokensEl   = document.getElementById("tokens-container");
+  for (var ti = 0; ti < classified.length; ti++) {
+    var item = classified[ti];
+    var el = document.createElement("span");
+    el.className   = "token";
+    el.textContent = item.token;
+    tokensEl.appendChild(el);
+    await delay(55);
+    el.classList.add("visible");
+    if (item.hit) { await delay(90); el.classList.add(item.hit); }
+  }
+  await delay(350);
+
+  // 02 Features
+  showCard("card-features");
+  var features = extractFeatures(text);
+  var fGrid    = document.getElementById("features-container");
+  for (var fi2 = 0; fi2 < features.length; fi2++) {
+    var active = features[fi2] > 0;
+    var node   = document.createElement("div");
+    node.className = "feature-node";
+    node.innerHTML =
+      '<div class="feature-circle' + (active ? " active" : "") + '">' +
+        '<span>' + F_META[fi2].icon + '</span>' +
+      '</div>' +
+      '<div class="feature-val' + (active ? " active" : "") + '">' + features[fi2] + '</div>' +
+      '<div class="feature-name">' + F_META[fi2].name + '</div>';
+    fGrid.appendChild(node);
+    await delay(30);
+    node.classList.add("visible");
+    await delay(120);
+  }
+  await delay(400);
+
+  // 03 Network
+  showCard("card-network");
+  await delay(150);
+  var result = forward(features);
+  var probs  = result.probs;
+  await animateNetwork(features, probs);
+  await delay(500);
+
+  // 04 Output
+  showCard("card-output");
+  var barsEl = document.getElementById("output-bars");
+  for (var oi2 = 0; oi2 < OUT_META.length; oi2++) {
+    var row = document.createElement("div");
+    row.className = "output-row";
+    row.innerHTML =
+      '<div class="output-label">' + OUT_META[oi2].name + '</div>' +
+      '<div class="bar-track"><div class="bar-fill ' + OUT_META[oi2].cls + '" id="bar-' + oi2 + '"></div></div>' +
+      '<div class="bar-pct" id="pct-' + oi2 + '">0%</div>';
+    barsEl.appendChild(row);
+  }
+  await delay(120);
+  for (var pi = 0; pi < probs.length; pi++) {
+    document.getElementById("bar-" + pi).style.width = (probs[pi]*100).toFixed(1) + "%";
+    document.getElementById("pct-" + pi).textContent = (probs[pi]*100).toFixed(1) + "%";
+  }
+  await delay(700);
+
+  var winner = probs.indexOf(Math.max.apply(null, probs));
+  var badge  = document.createElement("div");
+  badge.className = "result-badge " + OUT_META[winner].cls;
+  badge.innerHTML = '<span class="dot"></span>' + OUT_META[winner].name.toUpperCase();
+  document.getElementById("result-badge-container").appendChild(badge);
+  await delay(40);
+  badge.classList.add("visible");
+}
+
+document.getElementById("email-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") run();
+});
+window.addEventListener("load", function() { run(); });
+</script>
+</body>
+</html>

@@ -1,18 +1,20 @@
 import { ModelParams } from "./params";
 
-export function computeScores(features: number[], modelParams: ModelParams): number[] {
+// ReLU activation: clamp negatives to 0
+export function relu(x: number): number {
+    return Math.max(0, x);
+}
+
+// Forward pass through hidden layer: features → hidden activations
+export function computeHidden(features: number[], modelParams: ModelParams): number[] {
+    const { W1, b1 } = modelParams;
+    return W1.map((row, i) => relu(row.reduce((s, w, j) => s + w * features[j], 0) + b1[i]));
+}
+
+// Forward pass through output layer: hidden activations → raw scores
+export function computeScores(hidden: number[], modelParams: ModelParams): number[] {
     const { weights, bias } = modelParams;
-    const scores: number[] = [];
-    for (let i = 0; i < 3; i++) {
-        // 3 classes
-        let s = 0;
-        for (let j = 0; j < features.length; j++) {
-            s += weights[i][j] * features[j];
-        }
-        s += bias[i];
-        scores.push(s);
-    }
-    return scores;
+    return weights.map((row, i) => row.reduce((s, w, j) => s + w * hidden[j], 0) + bias[i]);
 }
 
 export function softmax(scores: number[]): number[] {
